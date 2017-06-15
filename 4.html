@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title></title>
+        <style>
+            *{
+                padding: 0;
+                margin: 0;
+            }
+            li{
+                list-style: none;
+            }
+            #div1 {
+                width: 900px;
+                margin: 0px auto;
+            }
+            #div1 ul {
+                width: 880px;
+                height: 510px;
+                padding: 10px;
+                margin-top: 30px;
+                border: 1px dashed #000;
+                overflow: hidden;
+                position: relative;
+            }
+            #div1 ul li {
+                float: left;
+                margin: 10px;
+                width: 200px;
+                height: 150px;
+                overflow: hidden;
+                position: relative;
+                left: 0px;
+                top:0px;
+                z-index: 1;
+                transition: 1s;
+                cursor:move;
+            }
+        </style>
+
+   
+    </head>
+    <script src="function.js"></script>
+
+    <body>
+        <div id="div1">
+            <input type="button" value="随机运动" id="btn" />
+            <ul id="oUl">
+                <li>
+                    <img src="img/1.jpg" />
+                </li>
+                <li>
+                    <img src="img/1.jpg" />
+                </li>
+                <li>
+                    <img src="img/2.jpg" />
+                </li>
+                <li>
+                    <img src="img/3.jpg" />
+                </li>
+                <li>
+                    <img src="img/4.jpg" />
+                </li>
+                <li>
+                    <img src="img/5.jpg" />
+                </li>
+                <li>
+                    <img src="img/6.jpg" />
+                </li>
+                <li>
+                    <img src="img/7.jpg" />
+                </li>
+                <li>
+                    <img src="img/8.jpg" />
+                </li>
+                <li>
+                    <img src="img/9.jpg" />
+                </li>
+                <li>
+                    <img src="img/10.jpg" />
+                </li>
+                <li>
+                    <img src="img/11.jpg" />
+                </li>
+            </ul>
+        </div>
+        <form enctype=""></form>
+        <script>
+        /*
+                1.做布局转换:
+                  定义数组存元素的offsetleft,offsettop;
+                2.点击按钮时,把每个元素绝对定位，left和top改变;
+                3.能够进行拖拽操作；
+                4.拖拽过程中检测碰撞,把碰到的元素push到数组中，
+                5.循环数组每一项,找到距离最小的,加上边框，
+                6.交换位置：
+         */
+function testPengzhuang( obj1,obj2 ){
+                var obj1W = obj1.offsetWidth;
+                var obj1H = obj1.offsetHeight;
+                var obj1L = obj1.offsetLeft;
+                var obj1T = obj1.offsetTop;
+
+                var obj2W = obj2.offsetWidth;
+                var obj2H = obj2.offsetHeight;
+                var obj2L = obj2.offsetLeft;
+                var obj2T = obj2.offsetTop;
+                //碰上返回true 否则返回false
+                if( obj1W+obj1L>obj2L && obj1T+obj1H > obj2T && obj1L < obj2L+obj2W && obj1T<obj2T+obj2H ){
+                    return true
+                }else{
+                     return false;
+                }
+
+}
+            var oBtn=document.getElementById("btn");
+            var oUl=document.getElementById("oUl");
+            var aLi=oUl.getElementsByTagName("li");
+            var w=parseInt(getStyle(aLi[0],"width"));
+            var h=parseInt(getStyle(aLi[0],"height"));
+            //console.log(w);
+            var arr=[];
+            var arr2=[];
+            //transitionend可以冒泡：
+            oUl.addEventListener("transitionend",function (ev){
+                ev.target.style.transition = 'none';
+            
+            },false);
+            for(var i=0;i<aLi.length;i++){
+              arr.push({left:aLi[i].offsetLeft,top:aLi[i].offsetTop});
+            }
+            for(var i=0;i<arr.length;i++){
+                aLi[i].index=i;
+                aLi[i].style.position="absolute";
+                aLi[i].style.left=arr[i].left+"px";
+                aLi[i].style.top=arr[i].top+"px";
+                aLi[i].style.margin='0px';
+            }
+
+
+            oBtn.onclick=function(){
+                //console.log(1);
+               arr.sort(function(){
+                    return Math.random() - 0.5;
+                });
+               for(var i=0;i<arr.length;i++){
+                 aLi[i].style.left=arr[i].left+"px";
+                 aLi[i].style.top=arr[i].top+"px";
+                 aLi[i].style.position="absolute";
+               }
+            }
+            var zIndex=1;
+            oUl.onmousedown=function(ev){
+                    var target=ev.target;
+                    //console.log(target);
+                    //判断target的nodename是li,如果是img,那么变成li;
+                if(target.nodeName=="LI"||target.nodeName=="IMG"&&(target=target.parentNode)){
+                        console.log(target);
+                    var disX=ev.clientX-target.offsetLeft;
+                    var disY=ev.clientY-target.offsetTop;
+                    
+                 zIndex++;
+                 target.style.zIndex=zIndex;
+                 //让当前的这个层级最高：
+                  //target.style.zIndex++;
+                  //不能这样写,这样写改变的只是自身的层级,
+                 var touchedobj=null;//保存被碰到的那个元素：
+                    var max=Infinity;
+                    var index;
+                    //记录碰撞到的距离最小的元素的下标：
+                 document.onmousemove=function(ev){
+                   
+                    arr2.length=0;//每次先清空数组,再添加：
+                    //每拖拽一次就会触发mousemove事件；
+                    //先把数组清空：
+                        target.style.left=ev.clientX-disX+"px";
+                        target.style.top=ev.clientY-disY+"px";
+                         target.style.transition="none";
+                 //检测碰撞;
+                 for(var i=0;i<aLi.length;i++){
+                    //console.log(target==aLi[i]);
+                    if(target!==aLi[i]){
+                        //排除自己：
+                        aLi[i].style.border="none";
+                        if(testPengzhuang(target,aLi[i])){
+                            arr2.push(aLi[i]);
+                        };
+                    } 
+                     
+                 }
+                 //console.log(arr2);
+                 //循环数组每一项比较
+                 for(var i=0;i<arr2.length;i++){
+                    var l=target.offsetLeft-arr2[i].offsetLeft;
+                    var t=target.offsetTop-arr2[i].offsetTop;
+                    var z=l*l+t*t;
+                    if(z<max){
+                        max=z;
+                        //只要z<max；
+                        index=i;//记录距离最小的那个元素的下标值;
+                    }
+
+                 }
+                 //console.log(arr2[index]);
+                 if(arr2[index]){
+                    //把碰到的那个元素加上边框：
+                    arr2[index].style.border="1px solid orange";
+                    arr2[index].style.margin="-1px";
+                 }
+                 touchedobj=arr2[index];//保存被碰到的元素；
+
+                 
+                 
+
+
+
+
+                        return false;//阻止默认行为;
+                    }
+                    document.onmouseup=function(){
+                        document.onmousemove=null;
+                        document.onmouseup=null;
+                        target.style.transition="1s";
+                     //鼠标抬起,两个元素交换;
+                     //拖拽：target;被碰到的元素:touchedobj;
+                    //元素身上的索引值没有改变：
+                    if(touchedobj){
+                    touchedobj.style.transition = 'left 1s,top 1s';
+                       
+                    target.style.left=arr[touchedobj.index].left+"px";
+                     target.style.top=arr[touchedobj.index].top+"px"; 
+                     touchedobj.style.left=arr[target.index].left+"px";
+                    touchedobj.style.top=arr[target.index].top+"px";
+                     touchedobj.style.border="none";
+                     //交换位置后交换索引值：
+                     var c;
+                     c=target.index;
+                     target.index=touchedobj.index;
+                     touchedobj.index=c;
+                         console.log(touchedobj.index);
+                        console.log(target.index);
+                     }else{
+                        //如果没有碰撞到,就回到原来的位置；
+                        target.style.left=arr[target.index].left+"px";
+                        target.style.top=arr[target.index].top+"px";
+                     }
+
+
+
+
+                }
+
+
+                }
+            }
+
+
+
+
+
+        </script>
+    </body>
+</html>
